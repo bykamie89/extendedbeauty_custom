@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- top section 2 kolone grid med filtrering og billede -->
+    <section id="behandlinger_grid_1">
+      <nav id="behandlinger-card">
+        <button data-behandlingstype="Alle behandlinger" class="valgt">
+          <!-- a href til auto scroll, er tilføjet til alle buttons i navigationen,
+            når der bliver klikket på en button i scroller 
+            den ned til <a name="nav_bottom"></a>-->
+          <a href="#nav_bottom"
+            ><h1 style="font-size: 30px">Alle behandlinger</h1></a
+          >
+        </button>
+
+        <button data-behandlingstype="Dermatude">
+          <a href="#nav_bottom"><h4>Dermatude</h4></a>
+        </button>
+        <button data-behandlingstype="Eyelash extensions">
+          <a href="#nav_bottom"><h4>Eyelash extensions</h4></a>
+        </button>
+        <button data-behandlingstype="Frisør">
+          <a href="#nav_bottom"><h4>Frisør</h4></a>
+        </button>
+        <button data-behandlingstype="Hair extensions">
+          <a href="#nav_bottom"><h4>Hair extensions</h4></a>
+        </button>
+        <a name="nav_bottom"></a>
+        <button data-behandlingstype="Kosmetolog behandlinger">
+          <a href="#nav_bottom"><h4>Kosmetolog behandlinger</h4></a>
+        </button>
+        <button data-behandlingstype="Negle">
+          <a href="#nav_bottom"><h4>Negle</h4></a>
+        </button>
+        <button data-behandlingstype="Permanent makeup">
+          <a href="#nav_bottom"><h4>Permanent makeup</h4></a>
+        </button>
+        <button data-behandlingstype="Spraytan">
+          <a href="#nav_bottom"><h4>Spraytan</h4></a>
+        </button>
+      </nav>
+      <div>
+        <img
+          src="http://kamie.dk/extendedbeauty/wp-content/uploads/2022/12/omos.webp"
+          alt="salon"
+        />
+      </div>
+    </section>
+
+    <!-- text indhold i h2 herunder bliver sat og ændret i scriptet-->
+    <h2 id="behandling-type-headline"></h2>
+
+    <!--section herunder hvor templaten bliver placeret efter den er genereret med indhold-->
+    <section id="behandling-holder"></section>
+
+    <!-- Template til visning af pris -->
+    <template id="pris-template">
+      <article id="pris_article">
+        <h4 id="pris-kategori"></h4>
+        <div id="pris-grid">
+          <p id="behandling"></p>
+          <p id="varighed"></p>
+          <p id="behandlingspris"></p>
+        </div>
+      </article>
+    </template>
+  </body>
+
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    #behandlinger_grid_1 {
+      display: grid;
+      grid-template-columns: 1fr;
+      padding-top: 1rem;
+    }
+
+    #behandlinger_grid_1 img {
+      width: 100%;
+    }
+
+    #behandlinger-card {
+      display: grid;
+      margin-top: 3rem;
+      order: 2;
+    }
+
+    #behandlinger-card button {
+      cursor: pointer;
+      padding-top: 0;
+      padding-bottom: 0;
+      background-color: white;
+      text-align: left;
+      border-radius: 0;
+      margin-bottom: 10px;
+      width: 75%;
+    }
+
+    #behandlinger-card button:hover h4,
+    #behandlinger-card button:hover h2 {
+      border-bottom: 1px solid #915477;
+      color: #915477;
+    }
+
+    #behandlinger-card button h4,
+    #behandlinger-card button h2 {
+      margin-bottom: 5px;
+      border-bottom: 1px solid black;
+    }
+
+    #pris-grid {
+      display: grid;
+      grid-template-columns: 2fr 0.5fr 0.5fr;
+      border-bottom: 1px solid #915477;
+    }
+
+    #behandlingspris,
+    #varighed {
+      text-align: end;
+    }
+
+    #behandling,
+    #varighed,
+    #behandlingspris {
+      margin: 1rem 0 0.5rem 0;
+    }
+
+    #pris-kategori {
+      margin-top: 4rem;
+      margin-bottom: 0;
+    }
+
+    #behandling-type-headline {
+      margin-bottom: 0;
+      margin-top: 5rem;
+      padding-right: 28px;
+      padding-left: 28px;
+    }
+
+    #pris_article {
+      padding-right: 28px;
+      padding-left: 28px;
+    }
+
+    @media (min-width: 800px) {
+      #behandlinger_grid_1 {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      #behandlinger-card {
+        margin-top: 0;
+        order: 0;
+      }
+    }
+  </style>
+
+  <script>
+    // konstant med url til rest api
+    const url =
+      'https://kamie.dk/extendedbeauty/wp-json/wp/v2/pris?per_page=100';
+
+    // variabler, type let da disse skal kunne ændres
+    let dbPris;
+    let filter = 'Alle behandlinger';
+    let prisKategori;
+    // variabel der henviser til overskriften placeret over pris templaten
+    let behandlingsHeadline = document.querySelector(
+      '#behandling-type-headline'
+    );
+    // sætter teksten i overskriften
+    behandlingsHeadline.textContent = 'Alle behandlinger';
+
+    document.addEventListener('DOMContentLoaded', findPriser);
+
+    // denne function lytter til tryk på knapperne i vores navigation
+    function findPriser() {
+      // konstantværdi variabel til alle knapperne i navigationen
+      const filterKnapper = document.querySelectorAll(
+        '#behandlinger-card button'
+      );
+      // lytter efter tryk på en knap, hvis trykket på kalder den filtrerPriser
+      filterKnapper.forEach((knap) =>
+        knap.addEventListener('click', filtrerPriser)
+      );
+      // kalder getData functionen
+      getData();
+    }
+
+    // funktion til at fetche data fra fores db
+    // svaret bliver derefter lagt i variablen dbPris i json format
+    async function getData() {
+      const response = await fetch(url);
+      dbPris = await response.json();
+      // kalder functionen visPriser
+      visPriser();
+    }
+
+    function filtrerPriser() {
+      // sætter værdien for variablen filter til datsetet fra knappen der kaldte functionen
+      filter = this.dataset.behandlingstype;
+      // fjerner klassen valgt fra tidligere knap og tilføjer den til knappen der kaldte functionen
+      document.querySelector('.valgt').classList.remove('valgt');
+      this.classList.add('valgt');
+      // kalder functionen visPriser
+      visPriser();
+      // sætter tekst værdien i overskriften til at være tekst indholdet fra knappen
+      behandlingsHeadline.textContent = this.textContent;
+    }
+
+    function visPriser() {
+      // konstanter der henviser til vores html template og section
+      const behandlingSection = document.querySelector('#behandling-holder');
+      const prisTemplate = document.querySelector('#pris-template').content;
+
+      dbPris.sort((a, b) => a.kategori[0].localeCompare(b.kategori[0]));
+
+      // sætter værdien priskategori til at være det samme som filter,
+      // denne benyttes længere nede til filtrering
+      prisKategori = filter;
+
+      // sætter indholdet i sectionen til at være tomt
+      behandlingSection.textContent = '';
+
+      // loop til at gennemløbe json array'et med svaret fra rest api'en
+      dbPris.forEach((pris) => {
+        // if statement der tjekker om værdien i filter matcher værdien i vores array kategori
+        // [0] referere til værdien i arrayet
+        // || er en "or" operator der indikere at hvis vores statement
+        // på den ene eller anden side er sandt udføre den indholdet
+        if (filter == pris.kategori[0] || filter == 'Alle behandlinger') {
+          const clone = prisTemplate.cloneNode(true);
+
+          // denne if statement sammenligner variablen prisKategori
+          // med den sidst tilføjede pris kategori
+          // hvis disse ikke er ens tilføjer vi
+          // den nye værdi til vores html element i templaten
+
+          if (prisKategori != pris.kategori[0]) {
+            clone.querySelector('#pris-kategori').textContent =
+              pris.kategori[0];
+            prisKategori = pris.kategori[0];
+            console.log(prisKategori);
+            // hvis disse er ens fjerner vi visningen af overskriften
+            // da de ellers vil blive vist hver gang vi generere en ny pris
+          } else {
+            clone.querySelector('#pris-kategori').style.display = 'none';
+          }
+
+          clone.querySelector('#behandling').textContent = pris.behandling;
+          // if statement der tjekker om der er en værdi i varighed
+          // hvis der er indhold tilføjer vi teksten markeret med '' både før og efter
+          // hvis ikke vises denne ikke i vores prisliste
+          if (pris.varighed != '') {
+            clone.querySelector('#varighed').textContent =
+              'Varighed: ' + pris.varighed + ' min';
+          } else {
+            clone.querySelector('#varighed').textContent = '';
+          }
+
+          clone.querySelector('#behandlingspris').textContent =
+            pris.behandlingspris + ' DKK';
+
+          // tilføjer templaten til sectionen
+          behandlingSection.appendChild(clone);
+        }
+      });
+    }
+  </script>
+</html>

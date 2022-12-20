@@ -1,0 +1,29 @@
+<!--Følgende er indsat under alle behandlingssider ved brug af et costum html element-->
+
+<!--En container laves med en klasse, så vi senere kan style denne specifikke container -->
+<div class="container_behandling">
+  <!--I containeren indsætter vi en overskift (behandling) og en brødtekst (pris) i hver sin div, 
+        såvel at vi kan lave et grid template -->
+  <div>
+    <h4>Dameklip</h4>
+  </div>
+  <div>
+    <p>695 kr.</p>
+  </div>
+</div>
+
+<!--Vi styler dette element-->
+<style>
+  /*Her giver container et grid template og fortæller at kolonne 1 skal fylde dobbelt så meget som kolonne 2 */
+  .container_behandling {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: 1fr;
+  }
+  /*Her styler vi prisen og højre centrer den*/
+  .container_behandling p {
+    font-weight: bold;
+    text-align: right;
+    font-size: 20px;
+  }
+</style>
